@@ -70,11 +70,39 @@ static void cjson_utils_functions_shouldnt_crash_with_null_pointers(void)
     cJSON_Delete(item);
 }
 
+static void cjson_utils_sort_should_keep_circular_prev_and_allow_adding(void)
+{
+    cJSON *obj = cJSON_Parse("{\"v1\":1,\"a2\":2}");
+    cJSON *added = NULL;
+    cJSON *last = NULL;
+
+    TEST_ASSERT_NOT_NULL(obj);
+    cJSONUtils_SortObject(obj);
+
+    TEST_ASSERT_NOT_NULL(obj->child);
+    TEST_ASSERT_EQUAL_STRING("a2", obj->child->string);
+
+    last = obj->child;
+    while (last->next != NULL)
+    {
+        last = last->next;
+    }
+    TEST_ASSERT_TRUE(obj->child->prev == last);
+
+    added = cJSON_AddNumberToObject(obj, "v3", 3);
+    TEST_ASSERT_NOT_NULL(added);
+    TEST_ASSERT_NOT_NULL(cJSON_GetObjectItemCaseSensitive(obj, "v3"));
+    TEST_ASSERT_TRUE(obj->child->prev == added);
+
+    cJSON_Delete(obj);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
 
     RUN_TEST(cjson_utils_functions_shouldnt_crash_with_null_pointers);
+    RUN_TEST(cjson_utils_sort_should_keep_circular_prev_and_allow_adding);
 
     return UNITY_END();
 }

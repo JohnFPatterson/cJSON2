@@ -573,20 +573,37 @@ static cJSON *sort_list(cJSON *list, const cJSON_bool case_sensitive)
         /* Append rest of first list. */
         if (result == NULL)
         {
-            return first;
+            result = first;
         }
-        result_tail->next = first;
-        first->prev = result_tail;
+        else
+        {
+            result_tail->next = first;
+            first->prev = result_tail;
+        }
     }
     if (second != NULL)
     {
         /* Append rest of second list */
         if (result == NULL)
         {
-            return second;
+            result = second;
         }
-        result_tail->next = second;
-        second->prev = result_tail;
+        else
+        {
+            result_tail->next = second;
+            second->prev = result_tail;
+        }
+    }
+
+    /* Restore the circular tail pointer used for O(1) appends. */
+    if (result != NULL)
+    {
+        current_item = result;
+        while (current_item->next != NULL)
+        {
+            current_item = current_item->next;
+        }
+        result->prev = current_item;
     }
 
     return result;

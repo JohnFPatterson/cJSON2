@@ -2047,11 +2047,13 @@ static cJSON_bool add_item_to_array(cJSON *array, cJSON *item)
     else
     {
         /* append to the end */
-        if (child->prev)
+        if (child->prev == NULL)
         {
-            suffix_object(child->prev, item);
-            array->child->prev = item;
+            /* missing circular tail pointer, cannot append */
+            return false;
         }
+        suffix_object(child->prev, item);
+        array->child->prev = item;
     }
 
     return true;

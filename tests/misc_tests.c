@@ -783,6 +783,38 @@ static void cjson_set_bool_value_must_not_break_objects(void)
     cJSON_Delete(sobj);
 }
 
+static void cjson_add_item_to_array_should_fail_when_tail_pointer_is_missing(void)
+{
+    cJSON *array = cJSON_CreateArray();
+    cJSON *first = cJSON_CreateNumber(1);
+    cJSON *second = cJSON_CreateNumber(2);
+    cJSON *reference_item = cJSON_CreateNumber(3);
+    cJSON *reference_array = NULL;
+    cJSON *reference_second = cJSON_CreateNumber(4);
+
+    TEST_ASSERT_NOT_NULL(array);
+    TEST_ASSERT_NOT_NULL(first);
+    TEST_ASSERT_NOT_NULL(second);
+    TEST_ASSERT_NOT_NULL(reference_item);
+    TEST_ASSERT_NOT_NULL(reference_second);
+
+    TEST_ASSERT_TRUE(cJSON_AddItemToArray(array, first));
+    array->child->prev = NULL;
+
+    TEST_ASSERT_FALSE(cJSON_AddItemToArray(array, second));
+    TEST_ASSERT_NULL(array->child->next);
+
+    reference_array = cJSON_CreateArrayReference(reference_item);
+    TEST_ASSERT_NOT_NULL(reference_array);
+    TEST_ASSERT_FALSE(cJSON_AddItemToArray(reference_array, reference_second));
+
+    cJSON_Delete(array);
+    cJSON_Delete(second);
+    cJSON_Delete(reference_array);
+    cJSON_Delete(reference_item);
+    cJSON_Delete(reference_second);
+}
+
 static void cjson_parse_big_numbers_should_not_report_error(void)
 {
     cJSON *valid_big_number_json_object1 = cJSON_Parse("{\"a\": true, \"b\": [ null,9999999999999999999999999999999999999999999999912345678901234567]}");
@@ -832,6 +864,7 @@ int CJSON_CDECL main(void)
     RUN_TEST(cjson_delete_item_from_array_should_not_broken_list_structure);
     RUN_TEST(cjson_set_valuestring_to_object_should_not_leak_memory);
     RUN_TEST(cjson_set_bool_value_must_not_break_objects);
+    RUN_TEST(cjson_add_item_to_array_should_fail_when_tail_pointer_is_missing);
     RUN_TEST(cjson_parse_big_numbers_should_not_report_error);
 
     return UNITY_END();
